@@ -9,6 +9,7 @@ const FG="'Cormorant Garamond', serif"
 const FB="'Noto Sans JP', sans-serif"
 const FM="'DM Mono', monospace"
 const CHANNEL='styleicon-brand-sync'
+const DIAG_CHANNEL='styleicon-diag-sync'
 
 function useSyncSend(){
   const ch=useRef(null);const ready=useRef(false)
@@ -82,12 +83,37 @@ function SelfCheck({sRef}){
   const hasYes=Object.values(answers).some(v=>v===true)
   const allAnswered=Object.keys(answers).length===CHECKS.length
   const yesCount=Object.values(answers).filter(v=>v===true).length
-  // ①: window保持 ④: ログ
+
+  // 診断チャンネル（送受信兼用）
+  const diagCh=useRef(null)
   useEffect(()=>{
-    if(!allAnswered)return
-    if(typeof window!=='undefined'){window.__diagnosis={yesCount}}
-    console.log('diagnosis:',yesCount)
-  },[allAnswered,yesCount])
+    if(typeof window==='undefined'||!window.BroadcastChannel)return
+    try{
+      diagCh.current=new BroadcastChannel(DIAG_CHANNEL)
+      // Presenterからの操作を受信して反映
+      diagCh.current.onmessage=(e)=>{
+        if(e.data?.type==='answer'&&typeof e.data.index==='number'){
+          setAnswers(prev=>({...prev,[e.data.index]:e.data.value}))
+        }
+      }
+    }catch(e){}
+    return()=>{try{diagCh.current?.close()}catch(e){}}
+  },[])
+
+  // 回答変更時：window保持 + ログ + Presenterへ状態同期
+  useEffect(()=>{
+    if(typeof window!=='undefined'){window.__diagnosis={yesCount,answers}}
+    if(allAnswered)console.log('diagnosis:',yesCount)
+    // 最新状態をPresenterに送信
+    try{diagCh.current?.postMessage({type:'state',answers,yesCount,allAnswered})}catch(e){}
+  },[answers,allAnswered,yesCount])
+
+  const handleAnswer=(i,val)=>{
+    setAnswers(prev=>({...prev,[i]:val}))
+    // Presenterにも即時送信（状態共有）
+    try{diagCh.current?.postMessage({type:'answer',index:i,value:val})}catch(e){}
+  }
+
   return<section ref={sRef} style={{...secPad,background:C.surface}}>
     <div style={wrap}>
       <SectionLabel n={2} text="SELF CHECK"/>
@@ -100,7 +126,7 @@ function SelfCheck({sRef}){
               <p style={{fontFamily:FB,fontSize:'clamp(13px,1.5vw,16px)',color:answers[i]===true?C.text:C.textMid,lineHeight:1.7,marginBottom:18,transition:'color 0.3s'}}>{text}</p>
               <div style={{display:'flex',gap:10}}>
                 {[true,false].map(val=>(
-                  <button key={String(val)} onClick={()=>setAnswers(prev=>({...prev,[i]:val}))} style={{fontFamily:FM,fontSize:11,letterSpacing:'0.15em',padding:`8px clamp(16px,3vw,24px)`,background:answers[i]===val?(val?C.gold:C.textDim):'transparent',color:answers[i]===val?C.bg:C.textDim,border:`1px solid ${answers[i]===val?(val?C.gold:C.textDim):C.border}`,borderRadius:2,cursor:'pointer',transition:'all 0.25s'}}>{val?'YES':'NO'}</button>
+                  <button key={String(val)} onClick={()=>handleAnswer(i,val)} style={{fontFamily:FM,fontSize:11,letterSpacing:'0.15em',padding:`8px clamp(16px,3vw,24px)`,background:answers[i]===val?(val?C.gold:C.textDim):'transparent',color:answers[i]===val?C.bg:C.textDim,border:`1px solid ${answers[i]===val?(val?C.gold:C.textDim):C.border}`,borderRadius:2,cursor:'pointer',transition:'all 0.25s'}}>{val?'YES':'NO'}</button>
                 ))}
               </div>
             </div>
@@ -346,6 +372,37 @@ function LivePreview({section}){
 function PresenterView(){
   const[cur,setCur]=useState(0);const[done,setDone]=useState(new Set());const[bantChecked,setBantChecked]=useState({});const[objOpen,setObjOpen]=useState(null)
   const curRef=useRef(0);const timer=useElapsedTimer();const sendSync=useSyncSend()
+
+  // 診断状態（顧客画面から受信 or Presenterで直接操作）
+  const[diagAnswers,setDiagAnswers]=useState({})
+  const diagCh=useRef(null)
+  useEffect(()=>{
+    if(typeof window==='undefined'||!window.BroadcastChannel)return
+    try{
+      diagCh.current=new BroadcastChannel(DIAG_CHANNEL)
+      // 顧客画面の回答を受信して反映
+      diagCh.current.onmessage=(e)=>{
+        if(e.data?.type==='state'){setDiagAnswers(e.data.answers||{})}
+        if(e.data?.type==='answer'&&typeof e.data.index==='number'){
+          setDiagAnswers(prev=>({...prev,[e.data.index]:e.data.value}))
+        }
+      }
+    }catch(e){}
+    return()=>{try{diagCh.current?.close()}catch(e){}}
+  },[])
+
+  // Presenterからの回答操作
+  const handleDiagAnswer=(i,val)=>{
+    setDiagAnswers(prev=>({...prev,[i]:val}))
+    const next={...diagAnswers,[i]:val}
+    const yc=Object.values(next).filter(v=>v===true).length
+    if(typeof window!=='undefined'){window.__diagnosis={yesCount:yc,answers:next}}
+    try{diagCh.current?.postMessage({type:'answer',index:i,value:val})}catch(e){}
+    console.log('diagnosis:',yc)
+  }
+
+  const diagYesCount=Object.values(diagAnswers).filter(v=>v===true).length
+  const diagAllAnswered=Object.keys(diagAnswers).length===CHECKS.length
   const go=(dir)=>{
     const next=Math.max(0,Math.min(P_SECTIONS.length-1,curRef.current+dir))
     if(next===curRef.current)return
@@ -426,26 +483,51 @@ function PresenterView(){
         {/* 右サイド */}
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
           <LivePreview section={sec}/>
-          {/* ② 診断結果カード（常時表示） */}
+          {/* ② 診断コントロール（常時表示） */}
           {(()=>{
-            const yc=typeof window!=='undefined'&&window.__diagnosis?window.__diagnosis.yesCount:-1
-            if(yc<0)return null
+            const yc=diagAllAnswered?diagYesCount:(typeof window!=='undefined'&&window.__diagnosis?window.__diagnosis.yesCount:-1)
             const cfg=yc>=2
               ?{icon:'⚠',label:'ブランド分断状態（提案強）',bg:'rgba(239,68,68,0.08)',border:'rgba(239,68,68,0.3)',color:'#fca5a5',dot:'#ef4444'}
               :yc===1
               ?{icon:'△',label:'軽度のズレあり',bg:'rgba(234,179,8,0.08)',border:'rgba(234,179,8,0.3)',color:'#fde047',dot:'#eab308'}
-              :{icon:'○',label:'現状維持 or 伸びしろ',bg:'rgba(34,197,94,0.08)',border:'rgba(34,197,94,0.25)',color:'#86efac',dot:'#22c55e'}
-            return<div style={{background:cfg.bg,border:`1px solid ${cfg.border}`,borderRadius:4,padding:'10px 14px'}}>
-              <div style={{fontFamily:FM,fontSize:9,color:cfg.dot,letterSpacing:'0.18em',marginBottom:6}}>DIAGNOSIS</div>
-              <div style={{display:'flex',alignItems:'center',gap:8}}>
-                <span style={{fontSize:13,color:cfg.color}}>{cfg.icon}</span>
-                <span style={{fontFamily:FB,fontSize:12,color:cfg.color,lineHeight:1.5}}>{cfg.label}</span>
+              :yc===0
+              ?{icon:'○',label:'現状維持 or 伸びしろ',bg:'rgba(34,197,94,0.08)',border:'rgba(34,197,94,0.25)',color:'#86efac',dot:'#22c55e'}
+              :{icon:'—',label:'未回答',bg:'rgba(80,72,56,0.2)',border:'#2a2520',color:C.textDim,dot:C.textDim}
+            return<div style={{background:'#181614',border:'1px solid #2a2520',borderRadius:4,overflow:'hidden'}}>
+              {/* ヘッダー＋診断結果 */}
+              <div style={{padding:'10px 14px',borderBottom:'1px solid #2a2520'}}>
+                <div style={{fontFamily:FM,fontSize:9,color:C.gold,letterSpacing:'0.18em',marginBottom:8}}>DIAGNOSIS</div>
+                <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',background:cfg.bg,border:`1px solid ${cfg.border}`,borderRadius:3}}>
+                  <span style={{fontSize:12,color:cfg.dot,flexShrink:0}}>{cfg.icon}</span>
+                  <span style={{fontFamily:FB,fontSize:11,color:cfg.color,lineHeight:1.4}}>{cfg.label}</span>
+                </div>
+              </div>
+              {/* 質問ごとのYES/NOボタン */}
+              <div style={{padding:'10px 14px',display:'flex',flexDirection:'column',gap:8}}>
+                <div style={{fontFamily:FM,fontSize:9,color:C.textDim,letterSpacing:'0.15em',marginBottom:2}}>CONTROL</div>
+                {CHECKS.map((text,i)=>(
+                  <div key={i} style={{display:'flex',flexDirection:'column',gap:5}}>
+                    <div style={{fontFamily:FB,fontSize:10,color:diagAnswers[i]===true?C.text:C.textDim,lineHeight:1.45,transition:'color 0.2s'}}>{text}</div>
+                    <div style={{display:'flex',gap:6}}>
+                      {[true,false].map(val=>(
+                        <button key={String(val)} onClick={()=>handleDiagAnswer(i,val)} style={{
+                          fontFamily:FM,fontSize:9,letterSpacing:'0.12em',
+                          padding:'5px 14px',flexShrink:0,
+                          background:diagAnswers[i]===val?(val?C.gold:'#504838'):'transparent',
+                          color:diagAnswers[i]===val?C.bg:C.textDim,
+                          border:`1px solid ${diagAnswers[i]===val?(val?C.gold:'#504838'):'#2a2520'}`,
+                          borderRadius:2,cursor:'pointer',transition:'all 0.2s',
+                        }}>{val?'YES':'NO'}</button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           })()}
           {/* ③ クロージング時のみガイド表示 */}
           {sec.id==='closing'&&(()=>{
-            const yc=typeof window!=='undefined'&&window.__diagnosis?window.__diagnosis.yesCount:-1
+            const yc=diagAllAnswered?diagYesCount:(typeof window!=='undefined'&&window.__diagnosis?window.__diagnosis.yesCount:-1)
             if(yc<0)return null
             const msg=yc>=2
               ?'先ほど複数当てはまっていたので、\n今回の構造はかなりハマる状態です'
