@@ -435,10 +435,12 @@ const C_SECTIONS = [
   { id: 'hero',       label: 'OPENING' },
   { id: 'problem',    label: 'PROBLEM' },
   { id: 'service',    label: 'SERVICE' },
+  { id: 'position',   label: 'POSITIONING' },
   { id: 'usp',        label: 'STRENGTH' },
   { id: 'basic',      label: 'WORKFLOW' },
   { id: 'track',      label: 'TRACK RECORD' },
   { id: 'hearingsec', label: 'HEARING' },
+  { id: 'qa',         label: 'Q & A' },
   { id: 'contact',    label: 'CONTACT' },
 ]
 
@@ -451,20 +453,18 @@ function CustomerView() {
   // presenterセクションID → 顧客スライドセクションID のマッピング
   // ※ position・hearing・qa は複数のpresenterスライドが同じ顧客セクションに対応
   useSyncReceive(useCallback((id) => {
-    // スライド10枚・顧客section8つ → 2か所は「留まる」設計になる
-    // 留まる箇所: 3→4 (ポジショニングはサービス補足) と 9→10 (締め≒連絡先確認)
-    // これにより 4→5・8→9 は必ず進む
+    // presenter 10スライド ↔ customer 10セクション 完全1:1対応
     const CMAP = {
       intro:    'hero',
       icebreak: 'problem',
       service:  'service',
-      position: 'service',    // 3→4: 顧客画面そのまま（留まる）
-      usp:      'usp',        // 4→5: USP へ進む ✅
-      basic:    'basic',      // 5→6: WORKFLOW へ進む ✅
-      track:    'track',      // 6→7: TRACK RECORD へ進む ✅
-      hearing:  'hearingsec', // 7→8: HEARING へ進む ✅
-      qa:       'contact',    // 8→9: CONTACT へ進む ✅
-      closing:  'contact',    // 9→10: 顧客画面そのまま（留まる）
+      position: 'position',   // 4→新セクション POSITIONING ✅
+      usp:      'usp',
+      basic:    'basic',
+      track:    'track',
+      hearing:  'hearingsec',
+      qa:       'qa',         // 9→新セクション Q&A ✅
+      closing:  'contact',
     }
     const target = CMAP[id]
     if (target && sectionRefs.current[target]) {
@@ -586,11 +586,51 @@ function CustomerView() {
         </div>
       </section>
 
+      {/* POSITIONING */}
+      <section ref={el => sectionRefs.current['position'] = el}
+        style={{ background: C.surface, padding: 'clamp(60px,8vw,120px) clamp(24px,6vw,80px)' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
+          <div className="fi" style={{ ...fiStyle, ...label }}>04 — POSITIONING</div>
+          <div className="fi" style={{ ...fiStyle, ...num }}>04</div>
+          <h2 className="fi" style={{ ...fiStyle, ...h2 }}>他社との違いは、<br /><em style={{ fontStyle: 'italic', color: C.gold }}>設計の起点</em>にある</h2>
+          <hr style={hr} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, marginTop: 32 }}>
+            <div className="fi" style={{ ...fiStyle, background: C.card, borderRadius: '8px 0 0 8px', padding: '28px 28px 32px', border: `1px solid ${C.border}` }}>
+              <div style={{ fontFamily: FM, fontSize: 9, letterSpacing: '0.22em', color: C.textDim, marginBottom: 16 }}>一般的な体制</div>
+              {['企画会社', '運営会社', 'SNS会社', '映像会社'].map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
+                  <span style={{ fontFamily: FM, fontSize: 9, color: C.textDim }}>0{i+1}</span>
+                  <span style={{ fontFamily: FB, fontSize: 13, color: C.textDim }}>{item}</span>
+                  <span style={{ marginLeft: 'auto', fontFamily: FM, fontSize: 10, color: '#6a1010', background: 'rgba(106,16,16,0.15)', padding: '2px 8px', borderRadius: 3 }}>別発注</span>
+                </div>
+              ))}
+              <div style={{ marginTop: 20, fontFamily: FB, fontSize: 12, color: C.textDim, lineHeight: 1.7 }}>
+                調整コスト増大・世界観のズレ・<br />イベント後の発信が後回しに
+              </div>
+            </div>
+            <div className="fi" style={{ ...fiStyle, transitionDelay: '0.1s', background: `linear-gradient(145deg, ${C.card}, rgba(196,151,62,0.07))`, borderRadius: '0 8px 8px 0', padding: '28px 28px 32px', border: `1px solid ${C.gold}`, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${C.gold}, ${C.goldDim})` }} />
+              <div style={{ fontFamily: FM, fontSize: 9, letterSpacing: '0.22em', color: C.gold, marginBottom: 16 }}>STYLE ICON</div>
+              {['企画 × 構成', '運営 × 安全管理', 'SNS × 広報', '映像 × クリエイティブ'].map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: `1px solid rgba(196,151,62,0.2)` }}>
+                  <span style={{ fontFamily: FM, fontSize: 9, color: C.gold }}>0{i+1}</span>
+                  <span style={{ fontFamily: FB, fontSize: 13, color: C.text }}>{item}</span>
+                  <span style={{ marginLeft: 'auto', fontFamily: FM, fontSize: 10, color: C.greenBright, background: 'rgba(42,128,80,0.15)', padding: '2px 8px', borderRadius: 3 }}>一体</span>
+                </div>
+              ))}
+              <div style={{ marginTop: 20, fontFamily: FB, fontSize: 12, color: C.textMid, lineHeight: 1.7 }}>
+                世界観を統一・工数を削減・<br />イベントと発信を同時に設計
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* USP */}
       <section ref={el => sectionRefs.current['usp'] = el}
         style={{ background: C.surface, padding: 'clamp(60px,8vw,120px) clamp(24px,6vw,80px)' }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
-          <div className="fi" style={{ ...fiStyle, ...label }}>04 — WHY STYLE ICON</div>
+          <div className="fi" style={{ ...fiStyle, ...label }}>05 — WHY STYLE ICON</div>
           <div className="fi" style={{ ...fiStyle, ...num }}>04</div>
           <h2 className="fi" style={{ ...fiStyle, ...h2 }}>弊社を選ぶ、<br />3つの理由</h2>
           <hr style={hr} />
@@ -616,8 +656,8 @@ function CustomerView() {
       <section ref={el => sectionRefs.current['basic'] = el}
         style={{ padding: 'clamp(60px,8vw,120px) clamp(24px,6vw,80px)', background: C.bg }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
-          <div className="fi" style={{ ...fiStyle, ...label }}>05 — WORKFLOW</div>
-          <div className="fi" style={{ ...fiStyle, ...num }}>05</div>
+          <div className="fi" style={{ ...fiStyle, ...label }}>06 — WORKFLOW</div>
+          <div className="fi" style={{ ...fiStyle, ...num }}>06</div>
           <h2 className="fi" style={{ ...fiStyle, ...h2 }}>企画から納品まで、<br />一本の流れで動く</h2>
           <hr style={hr} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 0, marginTop: 36 }}>
@@ -645,8 +685,8 @@ function CustomerView() {
         <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${IMG.fire})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.2) saturate(0.6)' }} />
         <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(180deg, ${C.bg}cc 0%, transparent 40%, ${C.bg}cc 100%)` }} />
         <div style={{ position: 'relative', maxWidth: 960, margin: '0 auto' }}>
-          <div className="fi" style={{ ...fiStyle, ...label }}>06 — TRACK RECORD</div>
-          <div className="fi" style={{ ...fiStyle, ...num }}>06</div>
+          <div className="fi" style={{ ...fiStyle, ...label }}>07 — TRACK RECORD</div>
+          <div className="fi" style={{ ...fiStyle, ...num }}>07</div>
           <h2 className="fi" style={{ ...fiStyle, ...h2 }}>実績が語る、<br />信頼の証</h2>
           <hr style={hr} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginTop: 32 }}>
@@ -680,8 +720,8 @@ function CustomerView() {
       <section ref={el => sectionRefs.current['hearingsec'] = el}
         style={{ background: C.bg, padding: 'clamp(60px,8vw,120px) clamp(24px,6vw,80px)' }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
-          <div className="fi" style={{ ...fiStyle, fontFamily: FM, fontSize: 10, letterSpacing: '0.28em', color: C.gold, marginBottom: 12 }}>07 — HEARING</div>
-          <div className="fi" style={{ ...fiStyle, fontFamily: FG, fontSize: 56, fontWeight: 300, color: C.gold, opacity: 0.4, lineHeight: 1 }}>07</div>
+          <div className="fi" style={{ ...fiStyle, fontFamily: FM, fontSize: 10, letterSpacing: '0.28em', color: C.gold, marginBottom: 12 }}>08 — HEARING</div>
+          <div className="fi" style={{ ...fiStyle, fontFamily: FG, fontSize: 56, fontWeight: 300, color: C.gold, opacity: 0.4, lineHeight: 1 }}>08</div>
           <h2 className="fi" style={{ ...fiStyle, fontFamily: FG, fontSize: 'clamp(28px,4vw,46px)', fontWeight: 300, color: C.text, lineHeight: 1.3, margin: '8px 0 20px' }}>
             御社の状況を<br /><em style={{ fontStyle: 'italic', color: C.gold }}>お聞かせください</em>
           </h2>
@@ -710,11 +750,41 @@ function CustomerView() {
         </div>
       </section>
 
+      {/* Q & A */}
+      <section ref={el => sectionRefs.current['qa'] = el}
+        style={{ background: C.bg, padding: 'clamp(60px,8vw,120px) clamp(24px,6vw,80px)' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
+          <div className="fi" style={{ ...fiStyle, ...label }}>09 — Q &amp; A</div>
+          <div className="fi" style={{ ...fiStyle, ...num }}>09</div>
+          <h2 className="fi" style={{ ...fiStyle, ...h2 }}>よくあるご質問</h2>
+          <hr style={hr} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32 }}>
+            {[
+              { q: '費用感はどれくらいですか？', a: '規模・内容によって異なるため、ご要望をお伺いした上でお見積もりをご提示します。次回、御社の状況に合わせたシミュレーションをお持ちします。' },
+              { q: 'イベントだけの依頼も可能ですか？', a: 'はい、可能です。イベント単体でも承りますが、デジタル施策と連動させることで効果が高まります。両方のパターンをご用意することもできます。' },
+              { q: 'SNS・映像制作だけも対応できますか？', a: 'もちろん対応可能です。イベントとセットでなくてもご相談ください。' },
+              { q: '遠方の案件も対応できますか？', a: 'イベントは関西〜関東・九州が中心ですが、規模によっては全国対応可能です。デジタル施策は全国対応しています。' },
+            ].map((item, i) => (
+              <div key={i} className="fi" style={{ ...fiStyle, transitionDelay: `${i * 0.08}s`, background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '20px 24px' }}>
+                <div style={{ display: 'flex', gap: 12, marginBottom: 10, alignItems: 'flex-start' }}>
+                  <span style={{ fontFamily: FM, fontSize: 10, color: C.gold, flexShrink: 0, marginTop: 2 }}>Q.</span>
+                  <span style={{ fontFamily: 'Noto Serif JP', fontSize: 14, color: C.text, lineHeight: 1.6 }}>{item.q}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', paddingLeft: 4, borderTop: `1px solid ${C.border}`, paddingTop: 10 }}>
+                  <span style={{ fontFamily: FM, fontSize: 10, color: C.textDim, flexShrink: 0, marginTop: 2 }}>A.</span>
+                  <span style={{ fontFamily: FB, fontSize: 13, color: C.textMid, lineHeight: 1.8 }}>{item.a}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CONTACT */}
       <section ref={el => sectionRefs.current['contact'] = el}
         style={{ background: C.surface, padding: 'clamp(80px,10vw,140px) clamp(24px,6vw,80px)', textAlign: 'center' }}>
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
-          <div className="fi" style={{ ...fiStyle, fontFamily: FM, fontSize: 10, letterSpacing: '0.28em', color: C.gold, marginBottom: 12 }}>07 — CONTACT</div>
+          <div className="fi" style={{ ...fiStyle, fontFamily: FM, fontSize: 10, letterSpacing: '0.28em', color: C.gold, marginBottom: 12 }}>10 — CONTACT</div>
           <h2 className="fi" style={{ ...fiStyle, fontFamily: FG, fontSize: 'clamp(28px,5vw,52px)', fontWeight: 300, color: C.text, marginBottom: 12 }}>
             まずはお気軽に<br /><em style={{ fontStyle: 'italic', color: C.gold }}>ご相談ください</em>
           </h2>

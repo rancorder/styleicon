@@ -656,8 +656,8 @@ function CustomerView() {
       <section ref={el => sectionRefs.current['basic'] = el}
         style={{ padding: 'clamp(60px,8vw,120px) clamp(24px,6vw,80px)', background: C.bg }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
-          <div className="fi" style={{ ...fiStyle, ...label }}>05 — WORKFLOW</div>
-          <div className="fi" style={{ ...fiStyle, ...num }}>05</div>
+          <div className="fi" style={{ ...fiStyle, ...label }}>06 — WORKFLOW</div>
+          <div className="fi" style={{ ...fiStyle, ...num }}>06</div>
           <h2 className="fi" style={{ ...fiStyle, ...h2 }}>企画から納品まで、<br />一本の流れで動く</h2>
           <hr style={hr} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 0, marginTop: 36 }}>
@@ -685,8 +685,8 @@ function CustomerView() {
         <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${IMG.fire})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.2) saturate(0.6)' }} />
         <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(180deg, ${C.bg}cc 0%, transparent 40%, ${C.bg}cc 100%)` }} />
         <div style={{ position: 'relative', maxWidth: 960, margin: '0 auto' }}>
-          <div className="fi" style={{ ...fiStyle, ...label }}>06 — TRACK RECORD</div>
-          <div className="fi" style={{ ...fiStyle, ...num }}>06</div>
+          <div className="fi" style={{ ...fiStyle, ...label }}>07 — TRACK RECORD</div>
+          <div className="fi" style={{ ...fiStyle, ...num }}>07</div>
           <h2 className="fi" style={{ ...fiStyle, ...h2 }}>実績が語る、<br />信頼の証</h2>
           <hr style={hr} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginTop: 32 }}>
@@ -720,8 +720,8 @@ function CustomerView() {
       <section ref={el => sectionRefs.current['hearingsec'] = el}
         style={{ background: C.bg, padding: 'clamp(60px,8vw,120px) clamp(24px,6vw,80px)' }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
-          <div className="fi" style={{ ...fiStyle, fontFamily: FM, fontSize: 10, letterSpacing: '0.28em', color: C.gold, marginBottom: 12 }}>07 — HEARING</div>
-          <div className="fi" style={{ ...fiStyle, fontFamily: FG, fontSize: 56, fontWeight: 300, color: C.gold, opacity: 0.4, lineHeight: 1 }}>07</div>
+          <div className="fi" style={{ ...fiStyle, fontFamily: FM, fontSize: 10, letterSpacing: '0.28em', color: C.gold, marginBottom: 12 }}>08 — HEARING</div>
+          <div className="fi" style={{ ...fiStyle, fontFamily: FG, fontSize: 56, fontWeight: 300, color: C.gold, opacity: 0.4, lineHeight: 1 }}>08</div>
           <h2 className="fi" style={{ ...fiStyle, fontFamily: FG, fontSize: 'clamp(28px,4vw,46px)', fontWeight: 300, color: C.text, lineHeight: 1.3, margin: '8px 0 20px' }}>
             御社の状況を<br /><em style={{ fontStyle: 'italic', color: C.gold }}>お聞かせください</em>
           </h2>
