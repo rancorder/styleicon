@@ -703,11 +703,14 @@ function PresenterView() {
   const sec = P_SECTIONS[cur]
 
   const go = useCallback((dir) => {
-    const next = Math.max(0, Math.min(P_SECTIONS.length - 1, cur + dir))
-    setCur(next)
-    setDone(d => new Set([...d, P_SECTIONS[cur].id]))
-    sendSync(P_SECTIONS[next].id)
-  }, [cur, sendSync])
+    setCur(prev => {
+      const next = Math.max(0, Math.min(P_SECTIONS.length - 1, prev + dir))
+      if (next === prev) return prev
+      setDone(d => new Set([...d, P_SECTIONS[prev].id]))
+      sendSync(P_SECTIONS[next].id)
+      return next
+    })
+  }, [sendSync])  // cur を deps から除外 → go が再生成されなくなり二重登録も防ぐ
 
   useEffect(() => {
     const onKey = (e) => {
@@ -716,7 +719,7 @@ function PresenterView() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [go])
+  }, [go])  // go が安定するのでリスナーも一度だけ登録される
 
   const P = { fontFamily: FB, fontSize: 13, color: '#e8ddd0' }
 
@@ -736,7 +739,7 @@ function PresenterView() {
       {/* Tab Navigation */}
       <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '0 20px', display: 'flex', overflowX: 'auto', gap: 0 }}>
         {P_SECTIONS.map((s, i) => (
-          <button key={s.id} onClick={() => { setCur(i); sendSync(s.id) }}
+          <button key={s.id} onClick={() => { setCur(prev => { setDone(d => new Set([...d, P_SECTIONS[prev].id])); sendSync(s.id); return i }) }}
             style={{ padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
               fontFamily: FM, fontSize: 10, letterSpacing: '0.14em',
               color: i === cur ? C.gold : done.has(s.id) ? C.textDim : C.textMid,
@@ -873,7 +876,7 @@ function PresenterView() {
         </button>
         <div style={{ display: 'flex', gap: 6 }}>
           {P_SECTIONS.map((s, i) => (
-            <div key={i} onClick={() => { setCur(i); sendSync(s.id) }}
+            <div key={i} onClick={() => { setCur(prev => { setDone(d => new Set([...d, P_SECTIONS[prev].id])); sendSync(s.id); return i }) }}
               style={{ width: i === cur ? 20 : 6, height: 6, borderRadius: 3, background: i === cur ? C.gold : done.has(s.id) ? C.green : C.border, transition: 'all 0.3s', cursor: 'pointer' }} />
           ))}
         </div>
