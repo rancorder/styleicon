@@ -12,12 +12,24 @@ const CHANNEL='styleicon-brand-sync'
 
 function useSyncSend(){
   const ch=useRef(null);const ready=useRef(false)
-  useEffect(()=>{ch.current=new BroadcastChannel(CHANNEL);ready.current=true;return()=>{ch.current.close();ready.current=false}},[])
-  const send=useRef((id)=>{if(ready.current)ch.current.postMessage({sectionId:id});else setTimeout(()=>ch.current?.postMessage({sectionId:id}),150)})
+  useEffect(()=>{
+    if(typeof window==='undefined'||!window.BroadcastChannel)return
+    try{ch.current=new BroadcastChannel(CHANNEL);ready.current=true}catch(e){}
+    return()=>{try{ch.current?.close()}catch(e){};ready.current=false}
+  },[])
+  const send=useRef((id)=>{
+    if(!ready.current||!ch.current)return
+    try{if(ready.current)ch.current.postMessage({sectionId:id});else setTimeout(()=>ch.current?.postMessage({sectionId:id}),150)}catch(e){}
+  })
   return send.current
 }
 function useSyncReceive(onSection){
-  useEffect(()=>{const ch=new BroadcastChannel(CHANNEL);ch.onmessage=(e)=>{if(e.data?.sectionId)onSection(e.data.sectionId)};return()=>ch.close()},[onSection])
+  useEffect(()=>{
+    if(typeof window==='undefined'||!window.BroadcastChannel)return
+    let ch
+    try{ch=new BroadcastChannel(CHANNEL);ch.onmessage=(e)=>{if(e.data?.sectionId)onSection(e.data.sectionId)}}catch(e){}
+    return()=>{try{ch?.close()}catch(e){}}
+  },[onSection])
 }
 function useElapsedTimer(){
   const[elapsed,setElapsed]=useState(0);const startRef=useRef(Date.now())
@@ -69,6 +81,13 @@ function SelfCheck({sRef}){
   const[answers,setAnswers]=useState({})
   const hasYes=Object.values(answers).some(v=>v===true)
   const allAnswered=Object.keys(answers).length===CHECKS.length
+  const yesCount=Object.values(answers).filter(v=>v===true).length
+  // ①: window保持 ④: ログ
+  useEffect(()=>{
+    if(!allAnswered)return
+    if(typeof window!=='undefined'){window.__diagnosis={yesCount}}
+    console.log('diagnosis:',yesCount)
+  },[allAnswered,yesCount])
   return<section ref={sRef} style={{...secPad,background:C.surface}}>
     <div style={wrap}>
       <SectionLabel n={2} text="SELF CHECK"/>
@@ -333,12 +352,14 @@ function PresenterView(){
     const prev=curRef.current;curRef.current=next;setCur(next)
     setDone(d=>new Set([...d,P_SECTIONS[prev].id]))
     if(P_SECTIONS[next].cs)sendSync(P_SECTIONS[next].cs)
+    console.log('section:',P_SECTIONS[next].id)
   }
   const jumpTo=(i)=>{
     if(i===curRef.current)return
     const prev=curRef.current;curRef.current=i;setCur(i)
     setDone(d=>new Set([...d,P_SECTIONS[prev].id]))
     if(P_SECTIONS[i].cs)sendSync(P_SECTIONS[i].cs)
+    console.log('section:',P_SECTIONS[i].id)
   }
   useEffect(()=>{const fn=(e)=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')go(1);if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(-1)};window.addEventListener('keydown',fn);return()=>window.removeEventListener('keydown',fn)},[])
   const sec=P_SECTIONS[cur];const progress=(cur/(P_SECTIONS.length-1))*100
@@ -405,6 +426,37 @@ function PresenterView(){
         {/* 右サイド */}
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
           <LivePreview section={sec}/>
+          {/* ② 診断結果カード（常時表示） */}
+          {(()=>{
+            const yc=typeof window!=='undefined'&&window.__diagnosis?window.__diagnosis.yesCount:-1
+            if(yc<0)return null
+            const cfg=yc>=2
+              ?{icon:'⚠',label:'ブランド分断状態（提案強）',bg:'rgba(239,68,68,0.08)',border:'rgba(239,68,68,0.3)',color:'#fca5a5',dot:'#ef4444'}
+              :yc===1
+              ?{icon:'△',label:'軽度のズレあり',bg:'rgba(234,179,8,0.08)',border:'rgba(234,179,8,0.3)',color:'#fde047',dot:'#eab308'}
+              :{icon:'○',label:'現状維持 or 伸びしろ',bg:'rgba(34,197,94,0.08)',border:'rgba(34,197,94,0.25)',color:'#86efac',dot:'#22c55e'}
+            return<div style={{background:cfg.bg,border:`1px solid ${cfg.border}`,borderRadius:4,padding:'10px 14px'}}>
+              <div style={{fontFamily:FM,fontSize:9,color:cfg.dot,letterSpacing:'0.18em',marginBottom:6}}>DIAGNOSIS</div>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <span style={{fontSize:13,color:cfg.color}}>{cfg.icon}</span>
+                <span style={{fontFamily:FB,fontSize:12,color:cfg.color,lineHeight:1.5}}>{cfg.label}</span>
+              </div>
+            </div>
+          })()}
+          {/* ③ クロージング時のみガイド表示 */}
+          {sec.id==='closing'&&(()=>{
+            const yc=typeof window!=='undefined'&&window.__diagnosis?window.__diagnosis.yesCount:-1
+            if(yc<0)return null
+            const msg=yc>=2
+              ?'先ほど複数当てはまっていたので、\n今回の構造はかなりハマる状態です'
+              :yc===1
+              ?'一部ズレがあるので、\nそこを整えるだけでも効果が出ます'
+              :'現状かなり整っているので、\nさらに伸ばすフェーズですね'
+            return<div style={{background:'rgba(196,151,62,0.06)',border:`1px solid ${C.goldDim}`,borderRadius:4,padding:'12px 14px'}}>
+              <div style={{fontFamily:FM,fontSize:9,color:C.gold,letterSpacing:'0.18em',marginBottom:8}}>CLOSING GUIDE</div>
+              <pre style={{fontFamily:FB,fontSize:12,color:C.textMid,lineHeight:1.75,margin:0,whiteSpace:'pre-wrap'}}>{msg}</pre>
+            </div>
+          })()}
           <div style={{background:'#181614',border:'1px solid #2a2520',borderRadius:4,padding:'clamp(12px,2vw,16px)'}}>
             <div style={{fontFamily:FM,fontSize:9,color:C.gold,letterSpacing:'0.18em',marginBottom:12}}>KEY POINTS</div>
             {sec.points.map((p,i)=><div key={i} style={{display:'flex',gap:8,alignItems:'flex-start',padding:'8px 0',borderBottom:i<sec.points.length-1?'1px solid #2a2520':'none'}}><span style={{color:C.gold,flexShrink:0,marginTop:1}}>▸</span><span style={{fontSize:12,color:C.textMid,lineHeight:1.65}}>{p}</span></div>)}
