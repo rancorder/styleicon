@@ -631,7 +631,7 @@ function CustomerView() {
         style={{ background: C.surface, padding: 'clamp(60px,8vw,120px) clamp(24px,6vw,80px)' }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
           <div className="fi" style={{ ...fiStyle, ...label }}>05 — WHY STYLE ICON</div>
-          <div className="fi" style={{ ...fiStyle, ...num }}>04</div>
+          <div className="fi" style={{ ...fiStyle, ...num }}>05</div>
           <h2 className="fi" style={{ ...fiStyle, ...h2 }}>弊社を選ぶ、<br />3つの理由</h2>
           <hr style={hr} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24, marginTop: 32 }}>
@@ -818,6 +818,64 @@ const BANT_ITEMS = [
   { key: 'T', label: 'Timing', q: '実施時期のイメージ' },
 ]
 
+// ─── Live Preview Component ───────────────────────────────────────
+const SLIDE_CARDS = {
+  intro:    { num: '01', bg: '#0d0c0a', accent: '#c4973e', title: 'EVENTS × DIGITAL', sub: '企画から現場、そしてデジタルまで', icon: '✦', bars: ['hero', 'opening', 'intro'] },
+  icebreak: { num: '02', bg: '#151310', accent: '#c4973e', title: 'THE CHALLENGE', sub: 'バラバラの外注が、ブランドを分断している', icon: '⚡', bars: ['企画', '運営', 'SNS', '映像'] },
+  service:  { num: '03', bg: '#0d0c0a', accent: '#c4973e', title: 'OUR SERVICE', sub: '一つのチームで、すべてをまとめる', icon: '🎪', bars: ['EVENT', 'VIDEO', 'MEDIA', 'WEB'] },
+  position: { num: '04', bg: '#151310', accent: '#c4973e', title: 'POSITIONING', sub: '他社との違いは、設計の起点にある', icon: '◈', bars: ['一般体制', 'vs', 'STYLE ICON'] },
+  usp:      { num: '05', bg: '#151310', accent: '#c4973e', title: 'WHY STYLE ICON', sub: '弊社を選ぶ、3つの理由', icon: '★', bars: ['一気通貫', '現場運営', '窓口一本化'] },
+  basic:    { num: '06', bg: '#0d0c0a', accent: '#c4973e', title: 'WORKFLOW', sub: '企画から納品まで、一本の流れで動く', icon: '→', bars: ['PLAN', 'PRODUCE', 'OPERATE', 'DIGITAL', 'RELEASE'] },
+  track:    { num: '07', bg: '#0d0c0a', accent: '#b8924a', title: 'TRACK RECORD', sub: '実績が語る、信頼の証', icon: '🔥', bars: ['¥7億+', 'EXPO2025', 'GLICO', '30+'] },
+  hearingsec:{ num: '08', bg: '#0d0c0a', accent: '#c4973e', title: 'HEARING', sub: '貴社の状況をお聞かせください', icon: '◎', bars: ['Budget', 'Authority', 'Needs', 'Timing'] },
+  qa:       { num: '09', bg: '#151310', accent: '#c4973e', title: 'Q & A', sub: 'よくあるご質問', icon: '?', bars: ['費用感', '単独依頼', '遠方対応', '規模感'] },
+  contact:  { num: '10', bg: '#151310', accent: '#c4973e', title: 'CONTACT', sub: 'まずはお気軽にご相談ください', icon: '✉', bars: ['STYLE ICON Co., Ltd.', '大阪市中央区'] },
+}
+
+const P_TO_CUSTOMER = {
+  intro: 'intro', icebreak: 'icebreak', service: 'service',
+  position: 'position', usp: 'usp', basic: 'basic',
+  track: 'track', hearing: 'hearingsec', qa: 'qa', closing: 'contact',
+}
+
+function LivePreview({ sectionId }) {
+  const key = P_TO_CUSTOMER[sectionId] || sectionId
+  const card = SLIDE_CARDS[key] || SLIDE_CARDS['intro']
+  return (
+    <div style={{ border: `1px solid rgba(196,151,62,0.4)`, borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ fontFamily: FM, fontSize: 9, letterSpacing: '0.22em', color: C.gold, padding: '7px 12px', background: 'rgba(196,151,62,0.08)', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: C.greenBright, flexShrink: 0, boxShadow: `0 0 6px ${C.greenBright}`, animation: 'pulse 2s ease-in-out infinite' }} />
+        LIVE — 顧客画面
+      </div>
+      <div style={{ background: card.bg, padding: '14px 16px', position: 'relative', minHeight: 130, overflow: 'hidden' }}>
+        {/* 背景装飾 */}
+        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 80% 20%, rgba(196,151,62,0.06) 0%, transparent 60%)`, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: 8, right: 10, fontFamily: "'DM Mono',monospace", fontSize: 28, fontWeight: 300, color: card.accent, opacity: 0.2, lineHeight: 1 }}>{card.num}</div>
+        {/* コンテンツ */}
+        <div style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+            <span style={{ fontSize: 10 }}>{card.icon}</span>
+            <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 8, letterSpacing: '0.2em', color: card.accent }}>{card.num} — {card.title}</span>
+          </div>
+          <div style={{ fontFamily: "'Noto Serif JP',serif", fontSize: 12, color: '#f0ead9', lineHeight: 1.5, marginBottom: 10, fontWeight: 300 }}>{card.sub}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {card.bars.map((b, i) => (
+              <span key={i} style={{ fontFamily: "'DM Mono',monospace", fontSize: 8, color: i === 0 ? card.accent : '#706458', background: i === 0 ? `rgba(196,151,62,0.1)` : 'rgba(255,255,255,0.04)', padding: '2px 6px', borderRadius: 3, letterSpacing: '0.1em' }}>{b}</span>
+            ))}
+          </div>
+        </div>
+        {/* コーナー装飾 */}
+        {[['top:0,left:0','borderTop,borderLeft'],['top:0,right:0','borderTop,borderRight'],['bottom:0,left:0','borderBottom,borderLeft'],['bottom:0,right:0','borderBottom,borderRight']].map(([pos,borders],i)=>{
+          const p = Object.fromEntries(pos.split(',').map(s=>s.split(':')))
+          const b = Object.fromEntries(borders.split(',').map(s=>[s,`1px solid rgba(196,151,62,0.3)`]))
+          return <span key={i} style={{ position:'absolute', width:8, height:8, ...p, ...b }} />
+        })}
+      </div>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
+    </div>
+  )
+}
+
 function PresenterView() {
   const [cur, setCur] = useState(0)
   const [done, setDone] = useState(new Set())
@@ -964,19 +1022,7 @@ function PresenterView() {
         <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto' }}>
 
           {/* Live Preview */}
-          <div style={{ border: `1px solid rgba(196,151,62,0.4)`, borderRadius: 8, overflow: 'hidden' }}>
-            <div style={{ fontFamily: FM, fontSize: 9, letterSpacing: '0.22em', color: C.gold, padding: '7px 12px', background: 'rgba(196,151,62,0.08)', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: C.greenBright, flexShrink: 0, boxShadow: `0 0 6px ${C.greenBright}` }} />
-              LIVE — 顧客画面
-            </div>
-            <div style={{ width: '100%', height: 156, overflow: 'hidden', background: C.bg, position: 'relative' }}>
-              <iframe
-                src="/"
-                title="顧客画面プレビュー"
-                style={{ width: 1280, height: 768, border: 'none', transform: 'scale(0.203)', transformOrigin: 'top left', pointerEvents: 'none', display: 'block' }}
-              />
-            </div>
-          </div>
+          <LivePreview sectionId={sec.id} />
 
           {/* Key Points */}
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '16px 18px' }}>
