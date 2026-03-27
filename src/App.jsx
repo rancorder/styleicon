@@ -455,12 +455,12 @@ function CustomerView() {
       intro:    'hero',
       icebreak: 'problem',
       service:  'service',
-      position: 'service',    // ポジショニングはサービス説明の延長 → SERVICE へ
+      position: 'usp',        // ポジショニング → USP（強み）セクションへ進める
       usp:      'usp',
       basic:    'basic',
       track:    'track',
-      hearing:  'hearingsec', // ヒアリング② → HEARING セクションへ
-      qa:       'hearingsec', // Q&A も HEARING セクション維持
+      hearing:  'hearingsec',
+      qa:       'contact',    // Q&A → CONTACT セクションへ進める
       closing:  'contact',
     }
     const target = CMAP[id]
