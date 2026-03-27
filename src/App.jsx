@@ -26,17 +26,23 @@ const CHANNEL = 'styleicon-slide-sync'
 
 function useSyncSend() {
   const ch = useRef(null)
+  const ready = useRef(false)
   useEffect(() => {
     ch.current = new BroadcastChannel(CHANNEL)
-    return () => ch.current.close()
+    ready.current = true
+    return () => { ch.current.close(); ready.current = false }
   }, [])
-  return useCallback((id) => ch.current?.postMessage({ sectionId: id }), [])
+  const send = useRef((id) => {
+    if (ready.current) ch.current.postMessage({ sectionId: id })
+    else setTimeout(() => ch.current?.postMessage({ sectionId: id }), 150)
+  })
+  return send.current
 }
 
 function useSyncReceive(onSection) {
   useEffect(() => {
     const ch = new BroadcastChannel(CHANNEL)
-    ch.onmessage = (e) => onSection(e.data.sectionId)
+    ch.onmessage = (e) => { if (e.data?.sectionId) onSection(e.data.sectionId) }
     return () => ch.close()
   }, [onSection])
 }
@@ -746,15 +752,17 @@ function PresenterView() {
   const sendSync = useSyncSend()
   const sec = P_SECTIONS[cur]
 
+  const curRef = useRef(0)
+
   const go = useCallback((dir) => {
-    setCur(prev => {
-      const next = Math.max(0, Math.min(P_SECTIONS.length - 1, prev + dir))
-      if (next === prev) return prev
-      setDone(d => new Set([...d, P_SECTIONS[prev].id]))
-      sendSync(P_SECTIONS[next].id)
-      return next
-    })
-  }, [sendSync])  // cur を deps から除外 → go が再生成されなくなり二重登録も防ぐ
+    const prev = curRef.current
+    const next = Math.max(0, Math.min(P_SECTIONS.length - 1, prev + dir))
+    if (next === prev) return
+    curRef.current = next          // ref を先に更新（同期）
+    setCur(next)                   // UI を更新
+    setDone(d => new Set([...d, P_SECTIONS[prev].id]))
+    sendSync(P_SECTIONS[next].id)  // 副作用は setState の外で呼ぶ
+  }, [sendSync])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -783,7 +791,7 @@ function PresenterView() {
       {/* Tab Navigation */}
       <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '0 20px', display: 'flex', overflowX: 'auto', gap: 0 }}>
         {P_SECTIONS.map((s, i) => (
-          <button key={s.id} onClick={() => { setCur(prev => { setDone(d => new Set([...d, P_SECTIONS[prev].id])); sendSync(s.id); return i }) }}
+          <button key={s.id} onClick={() => { const prev = curRef.current; if (prev !== i) { curRef.current = i; setCur(i); setDone(d => new Set([...d, P_SECTIONS[prev].id])); sendSync(s.id) } }}
             style={{ padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
               fontFamily: FM, fontSize: 10, letterSpacing: '0.14em',
               color: i === cur ? C.gold : done.has(s.id) ? C.textDim : C.textMid,
@@ -920,7 +928,7 @@ function PresenterView() {
         </button>
         <div style={{ display: 'flex', gap: 6 }}>
           {P_SECTIONS.map((s, i) => (
-            <div key={i} onClick={() => { setCur(prev => { setDone(d => new Set([...d, P_SECTIONS[prev].id])); sendSync(s.id); return i }) }}
+            <div key={i} onClick={() => { const prev = curRef.current; if (prev !== i) { curRef.current = i; setCur(i); setDone(d => new Set([...d, P_SECTIONS[prev].id])); sendSync(s.id) } }}
               style={{ width: i === cur ? 20 : 6, height: 6, borderRadius: 3, background: i === cur ? C.gold : done.has(s.id) ? C.green : C.border, transition: 'all 0.3s', cursor: 'pointer' }} />
           ))}
         </div>
