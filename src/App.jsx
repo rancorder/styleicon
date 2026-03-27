@@ -448,17 +448,19 @@ function CustomerView() {
   const [active, setActive] = useState('hero')
   const sectionRefs = useRef({})
 
+  // presenterセクションID → 顧客スライドセクションID のマッピング
+  // ※ position・hearing・qa は複数のpresenterスライドが同じ顧客セクションに対応
   useSyncReceive(useCallback((id) => {
     const CMAP = {
       intro:    'hero',
       icebreak: 'problem',
       service:  'service',
-      position: 'service',      // FIX: was 'problem' -> 後退していた
+      position: 'service',    // ポジショニングはサービス説明の延長 → SERVICE へ
       usp:      'usp',
       basic:    'basic',
       track:    'track',
-      hearing:  'hearingsec',   // FIX: was 'track' -> 動かなかった
-      qa:       'hearingsec',   // FIX: was null -> 動かなかった
+      hearing:  'hearingsec', // ヒアリング② → HEARING セクションへ
+      qa:       'hearingsec', // Q&A も HEARING セクション維持
       closing:  'contact',
     }
     const target = CMAP[id]
