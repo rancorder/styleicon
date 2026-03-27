@@ -135,10 +135,11 @@ function HeroScene() {
     scene.add(pts)
 
     let mx = 0, my = 0
-    window.addEventListener('mousemove', e => {
+    const onMouseMove = e => {
       mx = (e.clientX / window.innerWidth - 0.5) * 0.6
       my = (e.clientY / window.innerHeight - 0.5) * 0.4
-    })
+    }
+    window.addEventListener('mousemove', onMouseMove)
 
     let t = 0
     const tick = () => {
@@ -158,6 +159,7 @@ function HeroScene() {
     tick()
 
     return () => {
+      window.removeEventListener('mousemove', onMouseMove)
       geo.dispose(); mat.dispose(); renderer.dispose()
     }
   })
@@ -424,13 +426,14 @@ function Corners() {
 }
 
 const C_SECTIONS = [
-  { id: 'hero',    label: 'OPENING' },
-  { id: 'problem', label: 'PROBLEM' },
-  { id: 'service', label: 'SERVICE' },
-  { id: 'usp',     label: 'STRENGTH' },
-  { id: 'basic',   label: 'WORKFLOW' },
-  { id: 'track',   label: 'TRACK RECORD' },
-  { id: 'contact', label: 'CONTACT' },
+  { id: 'hero',       label: 'OPENING' },
+  { id: 'problem',    label: 'PROBLEM' },
+  { id: 'service',    label: 'SERVICE' },
+  { id: 'usp',        label: 'STRENGTH' },
+  { id: 'basic',      label: 'WORKFLOW' },
+  { id: 'track',      label: 'TRACK RECORD' },
+  { id: 'hearingsec', label: 'HEARING' },
+  { id: 'contact',    label: 'CONTACT' },
 ]
 
 function CustomerView() {
@@ -441,9 +444,16 @@ function CustomerView() {
 
   useSyncReceive(useCallback((id) => {
     const CMAP = {
-      intro: 'hero', icebreak: 'problem', service: 'service',
-      position: 'problem', usp: 'usp', basic: 'basic',
-      track: 'track', hearing: 'track', qa: null, closing: 'contact',
+      intro:    'hero',
+      icebreak: 'problem',
+      service:  'service',
+      position: 'service',      // FIX: was 'problem' -> 後退していた
+      usp:      'usp',
+      basic:    'basic',
+      track:    'track',
+      hearing:  'hearingsec',   // FIX: was 'track' -> 動かなかった
+      qa:       'hearingsec',   // FIX: was null -> 動かなかった
+      closing:  'contact',
     }
     const target = CMAP[id]
     if (target && sectionRefs.current[target]) {
@@ -650,6 +660,40 @@ function CustomerView() {
               AnimeJapan 2025 ／ みなとHANABI 2025（WEB・広報・制作・運営） ／ 
               万博花火 2025（広報・制作・運営・警備） ／ サマソニ大阪（運営・警備） ／ 
               a-nation 2025 ／ totta AWARD 2025 ／ HAIR PLAY OUT 2025 …他多数
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* HEARING / QA */}
+      <section ref={el => sectionRefs.current['hearingsec'] = el}
+        style={{ background: C.bg, padding: 'clamp(60px,8vw,120px) clamp(24px,6vw,80px)' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
+          <div className="fi" style={{ ...fiStyle, fontFamily: FM, fontSize: 10, letterSpacing: '0.28em', color: C.gold, marginBottom: 12 }}>07 — HEARING</div>
+          <div className="fi" style={{ ...fiStyle, fontFamily: FG, fontSize: 56, fontWeight: 300, color: C.gold, opacity: 0.4, lineHeight: 1 }}>07</div>
+          <h2 className="fi" style={{ ...fiStyle, fontFamily: FG, fontSize: 'clamp(28px,4vw,46px)', fontWeight: 300, color: C.text, lineHeight: 1.3, margin: '8px 0 20px' }}>
+            御社の状況を<br /><em style={{ fontStyle: 'italic', color: C.gold }}>お聞かせください</em>
+          </h2>
+          <div className="fi" style={{ ...fiStyle, border: 'none', borderTop: '1px solid #2e2820', margin: '20px 0' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginTop: 32 }}>
+            {[
+              { key: 'B', label: 'Budget', ja: '予算・規模感' },
+              { key: 'A', label: 'Authority', ja: '意思決定者' },
+              { key: 'N', label: 'Needs', ja: '期待する成果' },
+              { key: 'T', label: 'Timing', ja: '実施時期のイメージ' },
+            ].map((item, i) => (
+              <div key={i} className="fi" style={{ ...fiStyle, transitionDelay: `${i * 0.1}s`, background: '#1c1814', border: '1px solid #2e2820', borderRadius: 8, padding: '24px 20px', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #c4973e, transparent)' }} />
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 28, fontWeight: 300, color: '#c4973e', opacity: 0.5, lineHeight: 1, marginBottom: 8 }}>{item.key}</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: '0.22em', color: '#c4973e', marginBottom: 6 }}>{item.label}</div>
+                <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, color: '#f0ead9' }}>{item.ja}</div>
+              </div>
+            ))}
+          </div>
+          <div className="fi" style={{ ...fiStyle, marginTop: 36, padding: '24px 32px', borderLeft: '3px solid #c4973e', background: '#151310' }}>
+            <p style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, fontWeight: 300, color: '#b8a898', lineHeight: 1.9 }}>
+              ここまでお話しした内容で、気になる点・深掘りしたい点がありましたら<br />
+              お気軽にお聞かせください。
             </p>
           </div>
         </div>
