@@ -407,13 +407,13 @@ const P_SECTIONS=[
    script:`弊社は、イベントの企画から当日の運営、そしてSNSや映像などの発信まで、一つのチームでまとめてお手伝いしている会社です。\n\n大きく3つの領域をカバーしています。\n\n一つ目は、ブランド設計。世界観・色調・メッセージ軸を企画段階で定義します。\n\n二つ目は、イベント制作。花火・ドローン・演出・運営・警備まで、現場全体を担当します。\n\n三つ目は、デジタル展開。SNS・映像・LP・KVを、現場と同じチームが制作します。\n\nこの三つが一体であることが、弊社の最大の特徴です。`,
    points:['「一つのチームで」を強調。競合との最大の差別化ポイント','3つを指で数えながら話す','「この三つが一体」で締める'],
    watch:'詳細に入りすぎない。概要は1分で済ませ、次のUSPで深掘りする。'},
-  {id:'usp',label:'USP 3点',cs:'usp',min:3,
+  {id:'usp',label:'USP 3点',cs:'service',min:3,
    preview:{label:'06 — WHY STYLE ICON',headline:'弊社を選ぶ、3つの理由。',sub:'統一世界観設計・同一チーム制作・品質基準統一。',accent:'#c4973e'},
    goal:'「この会社は違う」と思わせる3つの強みを記憶に残す。',
    script:`これまでの実績に基づいて、貴社にメリットと感じていただけるポイントを3点お話しさせていただきます。\n\n一つ目は、ブランド世界観の統一設計です。\n企画段階からブランドのトーンを定義し、イベントとSNSの見せ方を同じ軸で設計することで、世界観のズレを最小限に抑えることができます。\n\n二つ目は、リアルとデジタルを同じチームで制作する点です。\n現場の演出や装飾、導線の設計と、SNS映えする素材の撮影ポイントまで一貫して設計できるため、リアルとデジタルのトーンが自然と揃います。\n\n最後に、ブランド価値を損なわないクリエイティブ基準です。\n色味や構図、演出、編集のトーンを統一し、ブランドらしさを崩さない制作体制を整えています。`,
    points:['「一つ目」「二つ目」「最後に」と指を立てながら話す','「世界観のズレを最小限に」は断言。自信を持って言い切る','「ブランドらしさを崩さない」は最後に使う効果がある'],
    watch:'3点を同じテンポで話さない。最後の「クリエイティブ基準」が一番刺さりやすい。'},
-  {id:'basic',label:'サービス詳細',cs:'process',min:4,
+  {id:'basic',label:'サービス詳細',cs:'service',min:4,
    preview:{label:'07 — WORKFLOW',headline:'企画から発信まで、一本の流れで動く。',sub:'設計→実行→拡散の3ステップ詳細。',accent:'#c4973e'},
    goal:'「企画→デジタル」の一体設計を具体的なイメージで伝える。',
    script:`弊社がどのようにブランドの世界観を統一しながら、イベントとデジタル施策をご提案しているのか、流れに沿って簡単にご説明いたします。\n\nまず設計段階では、ブランドの世界観・色味・トーン・価値観を整理し、イベント当日の体験設計と同時に、SNSでどのように広がる設計にするか、どのような映像が残るとブランド価値が高まるか、どの瞬間を「ブランドらしい絵」として切り取るかといった点を、最初から同じライン上で設計いたします。\n\n実行フェーズでは、音楽花火やドローンショーのような大規模演出をはじめ、装飾・導線・照明・音響のトーン設計、安全管理マニュアルやスタッフ配置など、現場を成立させるための実務まで一括で対応いたします。\n\nイベント後は、当日の熱量をそのままデジタルへ展開できるよう、ハイライト映像、SNS投稿設計、LP制作、キービジュアル開発など、オンライン側のクリエイティブも同じチームで担当いたします。`,
@@ -663,7 +663,7 @@ function CustomerView(){
   const sectionRefs=useRef({});const[,setActive]=useState('hero')
   useSyncReceive(useRef((id)=>{const el=sectionRefs.current[id];if(el)el.scrollIntoView({behavior:'smooth'})}).current)
   useEffect(()=>{
-    const IDS=['hero','check','fracture','comparison','service','usp','process','track','benefit','contact']
+    const IDS=['hero','check','fracture','comparison','service','track','benefit','contact']
     const fn=()=>{for(const id of IDS){const el=sectionRefs.current[id];if(el){const r=el.getBoundingClientRect();if(r.top<=window.innerHeight*0.5&&r.bottom>=window.innerHeight*0.5){setActive(id);break}}}}
     window.addEventListener('scroll',fn,{passive:true});return()=>window.removeEventListener('scroll',fn)
   },[])
@@ -675,8 +675,6 @@ function CustomerView(){
     <Fracture sRef={r('fracture')}/>
     <Comparison sRef={r('comparison')}/>
     <Service sRef={r('service')}/>
-    <USP sRef={r('usp')}/>
-    <Process sRef={r('process')}/>
     <Track sRef={r('track')}/>
     <Benefit sRef={r('benefit')}/>
     <Closing sRef={r('contact')}/>
